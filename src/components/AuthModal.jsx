@@ -45,8 +45,9 @@ const AuthModal = ({ isOpen, onClose, authMode }) => {
         body: formDataObj,
       });
 
+      const data = await res.json();
+
       if (res.ok) {
-        const data = await res.json();
         toast.success('Registration successful. Signing you in...');
         await signIn('credentials', {
           redirect: false,
@@ -54,8 +55,10 @@ const AuthModal = ({ isOpen, onClose, authMode }) => {
           password: formData.password,
         });
         onClose();
+      } else if (res.status === 409) {
+        toast.error(data.message);
+        setIsRegistering(false);
       } else {
-        const data = await res.json();
         toast.error(data.message);
       }
     } catch (error) {
@@ -72,7 +75,8 @@ const AuthModal = ({ isOpen, onClose, authMode }) => {
       password: formData.password,
     });
     if (result.error) {
-      toast.error('Sign in failed');
+      toast.error('Sign in failed. User not registered.');
+      setIsRegistering(true);
     } else {
       onClose();
     }

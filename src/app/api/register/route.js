@@ -22,6 +22,15 @@ export const POST = async (req) => {
       );
     }
 
+    // Check if the user already exists
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return new Response(
+        JSON.stringify({ message: 'User already registered' }),
+        { status: 409 }, // 409 Conflict
+      );
+    }
+
     const hashedPassword = await bcrypt.hash(password, 10);
 
     let imageUrl = '';
