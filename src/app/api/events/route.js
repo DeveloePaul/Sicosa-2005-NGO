@@ -1,7 +1,7 @@
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/utils/authOptions';
 import connectDB from '@/config/db';
-import Event from '@/models/event';
+import Event from '@/models/Event';
 import cloudinary from '@/config/cloudinary';
 
 export const GET = async (request) => {

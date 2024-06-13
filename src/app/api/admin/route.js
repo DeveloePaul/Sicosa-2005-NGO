@@ -1,6 +1,6 @@
 import { getSession } from 'next-auth/react';
 import connectDB from '@/config/db';
-import Event from '@/models/event';
+import Event from '@/models/Event';
 
 export default async function handler(req, res) {
   const session = await getSession({ req });

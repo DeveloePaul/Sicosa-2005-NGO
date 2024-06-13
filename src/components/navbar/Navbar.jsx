@@ -156,7 +156,7 @@ const Navbar = () => {
                 pathname.includes('/members') ? 'text-blue-600 font-bold' : ''
               }`}
             >
-              Members
+              Alumni
             </button>
             {isMembersOpen && (
               <div className='absolute left-0 mt-2 py-2 w-48 bg-white border rounded shadow-xl z-20'>
@@ -237,7 +237,7 @@ const Navbar = () => {
           </Link>
           <div className='relative' ref={membersDropdownRef}>
             <button onClick={handleMembersLinkClick} className='block'>
-              Members
+              Alumni
             </button>
             {isMembersOpen && (
               <div className='mt-2 py-2 w-full bg-white border rounded shadow-xl z-20'>

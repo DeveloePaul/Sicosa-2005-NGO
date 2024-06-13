@@ -1,23 +1,49 @@
-import React from 'react';
-import { fetchPost, fetchPosts } from '@/utils/request';
+'use client';
+import React, { useState, useEffect } from 'react';
+import { useParams, useRouter } from 'next/navigation';
+import { fetchPost } from '@/utils/request';
 import Spinner from '@/components/Spinner';
-import { useRouter } from 'next/router';
 import { toast } from 'react-toastify';
 
-const SinglePost = ({ post }) => {
+const SinglePost = () => {
+  const { id } = useParams();
   const router = useRouter();
+  const [post, setPost] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  if (router.isFallback) {
-    return <Spinner loading={true} />;
+  useEffect(() => {
+    const fetchPostData = async () => {
+      if (!id) return;
+      try {
+        const post = await fetchPost(id);
+        setPost(post);
+      } catch (error) {
+        setError('Failed to load post');
+        console.error('Error fetching post:', error);
+        toast.error('Failed to load post');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchPostData();
+  }, [id]);
+
+  const handleBackToPosts = () => {
+    router.push('/blog');
+  };
+
+  if (loading) {
+    return <Spinner loading={loading} />;
+  }
+
+  if (error) {
+    return <p className='text-center text-xl'>{error}</p>;
   }
 
   if (!post) {
     return <p className='text-center text-xl'>Post not found.</p>;
   }
-
-  const handleBackToPosts = () => {
-    router.push('/blog');
-  };
 
   return (
     <div className='container mx-auto px-4 py-10'>
@@ -36,25 +62,5 @@ const SinglePost = ({ post }) => {
     </div>
   );
 };
-
-export async function getStaticPaths() {
-  const posts = await fetchPosts();
-  const paths = posts.map((post) => ({
-    params: { id: post.id.toString() },
-  }));
-
-  return { paths, fallback: true };
-}
-
-export async function getStaticProps({ params }) {
-  const post = await fetchPost(params.id);
-
-  return {
-    props: {
-      post,
-    },
-    revalidate: 10,
-  };
-}
 
 export default SinglePost;

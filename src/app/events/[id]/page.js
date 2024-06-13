@@ -1,24 +1,43 @@
-import React from 'react';
-import { fetchEvent, fetchEvents } from '@/utils/request';
-import Spinner from '@/components/Spinner';
+'use client';
+import React, { useState, useEffect } from 'react';
+import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { format, parseISO } from 'date-fns';
-import { useRouter } from 'next/router';
+import { fetchEvent } from '@/utils/request';
+import Spinner from '@/components/Spinner';
 
-const SingleEventPage = ({ event }) => {
+const SingleEventPage = () => {
+  const { id } = useParams();
   const router = useRouter();
+  const [event, setEvent] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  if (router.isFallback) {
-    return <Spinner loading={true} />;
+  useEffect(() => {
+    const fetchEventData = async () => {
+      if (!id) return;
+      try {
+        const event = await fetchEvent(id);
+        setEvent(event);
+      } catch (error) {
+        console.error('Error fetching event:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchEventData();
+  }, [id]);
+
+  const handleBackToEvents = () => {
+    router.push('/events');
+  };
+
+  if (loading) {
+    return <Spinner loading={loading} />;
   }
 
   if (!event) {
     return <p className='text-center text-xl'>Event not found.</p>;
   }
-
-  const handleBackToEvents = () => {
-    router.push('/events');
-  };
 
   return (
     <div className='container mx-auto px-4 py-10'>
@@ -54,25 +73,5 @@ const SingleEventPage = ({ event }) => {
     </div>
   );
 };
-
-export async function getStaticPaths() {
-  const events = await fetchEvents();
-  const paths = events.map((event) => ({
-    params: { id: event.id.toString() },
-  }));
-
-  return { paths, fallback: true };
-}
-
-export async function getStaticProps({ params }) {
-  const event = await fetchEvent(params.id);
-
-  return {
-    props: {
-      event,
-    },
-    revalidate: 10,
-  };
-}
 
 export default SingleEventPage;

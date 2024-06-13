@@ -11,11 +11,11 @@ const MembersServer = async () => {
   const session = await getServerSession(authOptions);
 
   if (!session) {
-   redirect('/sign-in');
-   return null;
+    redirect('/sign-in');
+    return null;
   }
 
-  const users = await User.find({ isExco: false }).sort({ name: 1 });
+  const users = await User.find({}).sort({ name: 1 });
   const usersData = users.map((user) => ({
     _id: user._id.toString(),
     name: user.name,
@@ -23,6 +23,7 @@ const MembersServer = async () => {
     dob: user.dob.toISOString(),
     image: user.image,
     isAdmin: user.isAdmin,
+    isExco: user.isExco,
     position: user.position,
   }));
 
