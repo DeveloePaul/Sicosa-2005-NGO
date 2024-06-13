@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import PostModal from '@/components/PostModal';
 import AddPostForm from '@/components/AddPostForm';
 
-const Blog = () => {
+const AddPost = () => {
   const [session, setSession] = useState(null);
   const [isAddPostModalOpen, setIsAddPostModalOpen] = useState(false);
 
@@ -36,11 +36,11 @@ const Blog = () => {
       <BlogSection />
       {isAddPostModalOpen && (
         <PostModal onClose={closeAddPostModal}>
-          <AddPostForm onClose={closeAddPostModal} />
+          <AddPostForm />
         </PostModal>
       )}
     </div>
   );
 };
 
-export default Blog;
+export default AddPost;

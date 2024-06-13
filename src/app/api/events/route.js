@@ -19,12 +19,11 @@ export const GET = async (request) => {
   }
 };
 
+
 export const POST = async (request) => {
   try {
     await connectDB();
     const session = await getServerSession({ req: request, ...authOptions });
-
-    console.log('Session:', session); // Log session details
 
     if (!session || !session.user.isAdmin) {
       return new Response(JSON.stringify({ message: 'Forbidden' }), {
@@ -37,17 +36,11 @@ export const POST = async (request) => {
     const description = formData.get('description');
     const location = formData.get('location');
     const date = formData.get('date');
+    const author = formData.get('author');
     const imageFile = formData.get('image');
 
-    if (!title || !description || !location || !date) {
-      return new Response(
-        JSON.stringify({ message: 'Missing required fields' }),
-        { status: 400 },
-      );
-    }
-
     let imageUrl = '';
-    if (imageFile) {
+    if (imageFile && typeof imageFile.arrayBuffer === 'function') {
       const buffer = await imageFile.arrayBuffer();
       const uploadResponse = await cloudinary.uploader.upload(
         `data:${imageFile.type};base64,${Buffer.from(buffer).toString(
@@ -59,24 +52,26 @@ export const POST = async (request) => {
     }
 
     const newEvent = new Event({
-      author: session.user._id, // Use _id instead of id
       title,
       description,
       location,
       date,
+      author,
       image: imageUrl,
     });
 
     await newEvent.save();
 
-    return new Response(
-      JSON.stringify({ ...newEvent.toObject(), image: imageUrl }),
-      { status: 201 },
-    );
+    return new Response(JSON.stringify(newEvent), {
+      status: 201,
+    });
   } catch (error) {
     console.error('Error creating event:', error);
     return new Response(
-      JSON.stringify({ message: 'Failed to add event', error: error.message }),
+      JSON.stringify({
+        message: 'Failed to create event',
+        error: error.message,
+      }),
       { status: 500 },
     );
   }

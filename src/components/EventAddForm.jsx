@@ -8,8 +8,6 @@ const EventAddForm = ({ onClose }) => {
   const { data: session } = useSession();
   const router = useRouter();
 
-  console.log('Session:', session); // Log session details
-
   const [form, setForm] = useState({
     title: '',
     description: '',
@@ -46,6 +44,7 @@ const EventAddForm = ({ onClose }) => {
     formData.append('description', form.description);
     formData.append('location', form.location);
     formData.append('date', form.date);
+    formData.append('author', session.user.id); // Add the author field
     if (form.image) {
       formData.append('image', form.image);
     }

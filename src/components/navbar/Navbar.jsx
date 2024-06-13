@@ -1,170 +1,306 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
 import { signOut, useSession } from 'next-auth/react';
+import { usePathname, useRouter } from 'next/navigation';
 import AuthModal from '@/components/AuthModal';
+import Image from 'next/image';
+import toast, { Toaster } from 'react-hot-toast';
+import { FaBars, FaTimes, FaUserCircle, FaSearch } from 'react-icons/fa';
 
 const Navbar = () => {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isMembersOpen, setIsMembersOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [authMode, setAuthMode] = useState('signin');
-  const { data: session } = useSession();
+  const [authMode, setAuthMode] = useState('signIn');
+  const [searchQuery, setSearchQuery] = useState('');
+  const modalRef = useRef(null);
+  const membersDropdownRef = useRef(null);
   const pathname = usePathname();
-  const membersMenuRef = useRef(null);
+  const { data: session, status } = useSession();
   const router = useRouter();
+  const [hasSignedIn, setHasSignedIn] = useState(false);
 
-  const toggleMenu = () => {
-    setIsOpen(!isOpen);
-  };
-
-  const toggleMembersMenu = () => {
-    setIsMembersOpen(!isMembersOpen);
-  };
-
-  const handleLinkClick = () => {
-    setIsOpen(false);
-    setIsMembersOpen(false);
-  };
-
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (
-        membersMenuRef.current &&
-        !membersMenuRef.current.contains(event.target)
-      ) {
-        setIsMembersOpen(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [membersMenuRef]);
-
-  const handleSignOut = async () => {
-    await signOut({ redirect: false });
-    router.push('/');
-  };
-
-  const openAuthModal = (mode) => {
+  const toggleModal = (mode) => {
     setAuthMode(mode);
     setIsModalOpen(true);
   };
 
+  const handleOutsideClick = (event) => {
+    if (modalRef.current && !modalRef.current.contains(event.target)) {
+      setIsModalOpen(false);
+    }
+    if (
+      membersDropdownRef.current &&
+      !membersDropdownRef.current.contains(event.target)
+    ) {
+      setIsMembersOpen(false);
+    }
+  };
+
+  useEffect(() => {
+    document.addEventListener('mousedown', handleOutsideClick);
+    return () => {
+      document.removeEventListener('mousedown', handleOutsideClick);
+    };
+  }, []);
+
+  const handleSignOut = () => {
+    signOut();
+    router.push('/');
+  };
+
+  useEffect(() => {
+    if (session && !hasSignedIn) {
+      toast.success(`Welcome ${session.user.name}`);
+      setHasSignedIn(true);
+    }
+  }, [session, hasSignedIn]);
+
+  const userInitials = (name) => {
+    return name
+      .split(' ')
+      .map((n) => n[0])
+      .join('');
+  };
+
+  const handleMenuToggle = (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setIsMenuOpen(!isMenuOpen);
+  };
+
+  const handleMembersLinkClick = (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setIsMembersOpen(!isMembersOpen);
+  };
+
+  const handleLinkClick = () => {
+    setIsMenuOpen(false);
+    setIsMembersOpen(false);
+  };
+
   return (
-    <>
-      <nav className='bg-gray-800 p-4'>
-        <div className='container mx-auto flex justify-between items-center'>
+    <nav className='bg-white shadow-lg p-4'>
+      <div className='max-w-6xl mx-auto flex justify-between items-center'>
+        <Link href='/' className='text-2xl font-bold text-blue-500'>
+          SICOSA-2005
+        </Link>
+        <div className='flex-1 mx-4 relative'>
+          <FaSearch className='absolute left-3 top-3 text-gray-400' />
+          <input
+            type='text'
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder='Search...'
+            className='w-full p-2 pl-10 border rounded-full'
+          />
+        </div>
+        <div className='md:hidden'>
+          <button onClick={handleMenuToggle}>
+            {isMenuOpen ? <FaTimes /> : <FaBars />}
+          </button>
+        </div>
+        <div className='hidden md:flex space-x-4 items-center'>
           <Link
             href='/'
-            className='text-white text-2xl font-bold'
-            onClick={handleLinkClick}
+            className={`hover:text-blue-500 ${
+              pathname === '/' ? 'text-blue-500' : ''
+            }`}
           >
-            SICOSA-05
+            Home
           </Link>
-          <button
-            className='text-white md:hidden flex flex-col items-center focus:outline-none'
-            onClick={toggleMenu}
+          <Link
+            href='/about'
+            className={`hover:text-blue-500 ${
+              pathname === '/about' ? 'text-blue-500' : ''
+            }`}
           >
-            <div className='text-3xl'>{isOpen ? '✖' : '☰'}</div>
-          </button>
-          <div
-            className={`${
-              isOpen ? 'block' : 'hidden'
-            } md:flex flex-col md:flex-row md:items-center w-full md:w-auto absolute md:relative top-16 right-0 md:top-0 bg-gray-800 md:bg-transparent z-10`}
+            About
+          </Link>
+          <Link
+            href='/events'
+            className={`hover:text-blue-500 ${
+              pathname === '/events' ? 'text-blue-500' : ''
+            }`}
           >
-            <div className='flex flex-col md:flex-row md:items-center md:ml-auto'>
-              {[
-                { href: '/about', label: 'About' },
-                { href: '/events', label: 'Events' },
-                { href: '/programs', label: 'Programs' },
-                { href: '#', label: 'Members', submenu: true },
-                { href: '/fundraising', label: 'Fundraising' },
-                { href: '/blog', label: 'Blog' },
-                { href: '/contact', label: 'Contact' },
-                ...(session?.user?.isAdmin
-                  ? [{ href: '/admin', label: 'Admin' }]
-                  : []),
-              ].map((link) => (
-                <div
-                  key={link.href}
-                  className='relative group'
-                  ref={link.submenu ? membersMenuRef : null}
+            Events
+          </Link>
+          <Link
+            href='/blog'
+            className={`hover:text-blue-500 ${
+              pathname === '/blog' ? 'text-blue-500' : ''
+            }`}
+          >
+            Blog
+          </Link>
+          <Link
+            href='/contact'
+            className={`hover:text-blue-500 ${
+              pathname === '/contact' ? 'text-blue-500' : ''
+            }`}
+          >
+            Contact
+          </Link>
+          <div className='relative' ref={membersDropdownRef}>
+            <button
+              onClick={handleMembersLinkClick}
+              className={`hover:text-blue-500 ${
+                pathname.includes('/members') ? 'text-blue-500' : ''
+              }`}
+            >
+              Members
+            </button>
+            {isMembersOpen && (
+              <div className='absolute left-0 mt-2 py-2 w-48 bg-white border rounded shadow-xl z-20'>
+                <Link
+                  href='/members'
+                  className='block px-4 py-2 text-gray-800 hover:bg-gray-200'
+                  onClick={handleLinkClick}
                 >
-                  <Link
-                    href={link.href}
-                    className={`block md:inline-block text-white mx-2 my-1 md:my-0 p-2 rounded transition duration-300 ${
-                      pathname === link.href
-                        ? 'font-bold bg-gray-700'
-                        : 'hover:bg-gray-700'
-                    }`}
-                    onClick={link.submenu ? toggleMembersMenu : handleLinkClick}
-                  >
-                    {link.label}
-                  </Link>
-                  {link.submenu && isMembersOpen && (
-                    <div className='md:absolute md:bg-gray-700 md:text-white md:mt-2 md:rounded md:shadow-lg md:w-48'>
-                      <Link
-                        href='/members/executives'
-                        className='block px-4 py-2 hover:bg-gray-600'
-                        onClick={handleLinkClick}
-                      >
-                        Executives
-                      </Link>
-                      <Link
-                        href='/members'
-                        className='block px-4 py-2 hover:bg-gray-600'
-                        onClick={handleLinkClick}
-                      >
-                        Members
-                      </Link>
-                    </div>
-                  )}
-                </div>
-              ))}
-              {!session && (
-                <>
-                  <button
-                    onClick={() => openAuthModal('register')}
-                    className='text-white mx-2 my-1 md:my-0 p-2 rounded transition duration-300 hover:bg-gray-700'
-                  >
-                    Register
-                  </button>
-                  <button
-                    onClick={() => openAuthModal('signin')}
-                    className='text-white mx-2 my-1 md:my-0 p-2 rounded transition duration-300 hover:bg-gray-700'
-                  >
-                    Sign In
-                  </button>
-                </>
-              )}
-              {session && (
+                  Members
+                </Link>
+                <Link
+                  href='/members/executives'
+                  className='block px-4 py-2 text-gray-800 hover:bg-gray-200'
+                  onClick={handleLinkClick}
+                >
+                  Executives
+                </Link>
+              </div>
+            )}
+          </div>
+          <div className='flex items-center space-x-2'>
+            {session ? (
+              <>
                 <button
                   onClick={handleSignOut}
-                  className='text-white mx-2 my-1 md:my-0 p-2 rounded transition duration-300 hover:bg-gray-700'
+                  className='bg-red-500 text-white px-2 py-1 rounded-full'
                 >
                   Sign Out
                 </button>
-              )}
-            </div>
+                <div className='relative w-8 h-8 rounded-full overflow-hidden bg-gray-300'>
+                  {session.user.image ? (
+                    <Image
+                      src={session.user.image}
+                      alt='User Image'
+                      layout='fill'
+                      objectFit='cover'
+                    />
+                  ) : (
+                    <FaUserCircle className='w-full h-full text-gray-500' />
+                  )}
+                </div>
+                <span className='hidden md:block px-2'>
+                  {session.user.name.split(' ')[0]}
+                </span>
+              </>
+            ) : (
+              <>
+                <button
+                  onClick={() => toggleModal('signIn')}
+                  className='bg-blue-500 text-white px-2 py-1 rounded-full'
+                >
+                  Sign In
+                </button>
+                <FaUserCircle className='w-8 h-8 text-gray-500' />
+              </>
+            )}
           </div>
         </div>
-      </nav>
-      <div className={isModalOpen ? 'blur-sm' : ''}>
-        {/* Add the main content of the page here */}
-        {/* Other page components go here */}
       </div>
-      {
-        <AuthModal
-          isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
-          authMode={authMode}
-        />
-      }
-    </>
+      {isMenuOpen && (
+        <div className='md:hidden mt-4 space-y-4'>
+          <Link href='/' className='block' onClick={handleLinkClick}>
+            Home
+          </Link>
+          <Link href='/about' className='block' onClick={handleLinkClick}>
+            About
+          </Link>
+          <Link href='/events' className='block' onClick={handleLinkClick}>
+            Events
+          </Link>
+          <Link href='/blog' className='block' onClick={handleLinkClick}>
+            Blog
+          </Link>
+          <Link href='/contact' className='block' onClick={handleLinkClick}>
+            Contact
+          </Link>
+          <div className='relative' ref={membersDropdownRef}>
+            <button onClick={handleMembersLinkClick} className='block'>
+              Members
+            </button>
+            {isMembersOpen && (
+              <div className='absolute left-0 mt-2 py-2 w-48 bg-white border rounded shadow-xl z-20'>
+                <Link
+                  href='/members'
+                  className='block px-4 py-2 text-gray-800 hover:bg-gray-200'
+                  onClick={handleLinkClick}
+                >
+                  Members
+                </Link>
+                <Link
+                  href='/members/executives'
+                  className='block px-4 py-2 text-gray-800 hover:bg-gray-200'
+                  onClick={handleLinkClick}
+                >
+                  Executives
+                </Link>
+              </div>
+            )}
+          </div>
+          <div className='flex items-center space-x-2'>
+            {session ? (
+              <>
+                <button
+                  onClick={handleSignOut}
+                  className='block bg-red-500 text-white px-2 py-1 rounded-full'
+                >
+                  Sign Out
+                </button>
+                <div className='relative w-8 h-8 rounded-full overflow-hidden bg-gray-300'>
+                  {session.user.image ? (
+                    <Image
+                      src={session.user.image}
+                      alt='User Image'
+                      layout='fill'
+                      objectFit='cover'
+                    />
+                  ) : (
+                    <FaUserCircle className='w-full h-full text-gray-500' />
+                  )}
+                </div>
+                <span className='block px-2'>
+                  {session.user.name.split(' ')[0]}
+                </span>
+              </>
+            ) : (
+              <>
+                <button
+                  onClick={() => toggleModal('signIn')}
+                  className='block bg-blue-500 text-white px-2 py-1 rounded-full'
+                >
+                  Sign In
+                </button>
+                <FaUserCircle className='w-8 h-8 text-gray-500' />
+              </>
+            )}
+          </div>
+        </div>
+      )}
+      {isModalOpen && (
+        <div
+          className='fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50'
+          onClick={handleOutsideClick}
+        >
+          <div ref={modalRef}>
+            <AuthModal mode={authMode} onClose={() => setIsModalOpen(false)} />
+          </div>
+        </div>
+      )}
+      <Toaster />
+    </nav>
   );
 };
 

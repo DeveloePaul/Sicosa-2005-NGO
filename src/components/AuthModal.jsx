@@ -1,10 +1,13 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { signIn } from 'next-auth/react';
 import { toast } from 'react-toastify';
+import { useRouter } from 'next/navigation';
 
 const AuthModal = ({ isOpen, onClose, authMode }) => {
   const [isRegistering, setIsRegistering] = useState(authMode === 'register');
+  const [isForgotPassword, setIsForgotPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -13,10 +16,24 @@ const AuthModal = ({ isOpen, onClose, authMode }) => {
     dob: '',
     image: null,
   });
+  const router = useRouter();
+  const modalRef = useRef(null);
 
   useEffect(() => {
     setIsRegistering(authMode === 'register');
+    setIsForgotPassword(false);
   }, [authMode]);
+
+  useEffect(() => {
+    if (isOpen) {
+      document.body.classList.add('modal-open');
+    } else {
+      document.body.classList.remove('modal-open');
+    }
+    return () => {
+      document.body.classList.remove('modal-open');
+    };
+  }, [isOpen]);
 
   const handleInputChange = (e) => {
     const { name, value, files } = e.target;
@@ -29,6 +46,7 @@ const AuthModal = ({ isOpen, onClose, authMode }) => {
 
   const handleRegister = async (e) => {
     e.preventDefault();
+    setIsLoading(true);
     const formDataObj = new FormData();
     formDataObj.append('name', formData.name);
     formDataObj.append('email', formData.email);
@@ -64,11 +82,14 @@ const AuthModal = ({ isOpen, onClose, authMode }) => {
     } catch (error) {
       console.error('Error:', error);
       toast.error('Server error');
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleSignIn = async (e) => {
     e.preventDefault();
+    setIsLoading(true);
     const result = await signIn('credentials', {
       redirect: false,
       email: formData.email,
@@ -80,6 +101,40 @@ const AuthModal = ({ isOpen, onClose, authMode }) => {
     } else {
       onClose();
     }
+    setIsLoading(false);
+  };
+
+  const handleForgotPassword = async (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    try {
+      const res = await fetch('/api/forgot-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email: formData.email }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        toast.info('Password reset link sent to your email.');
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      toast.error('Server error');
+    } finally {
+      setIsLoading(false);
+      setIsForgotPassword(false);
+    }
+  };
+
+  const handleCancel = () => {
+    router.push('/');
   };
 
   return (
@@ -89,16 +144,30 @@ const AuthModal = ({ isOpen, onClose, authMode }) => {
       }`}
     >
       <div className='fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm'></div>
-      <div className='bg-white p-8 rounded shadow-lg relative z-10'>
+      <div
+        ref={modalRef}
+        className='bg-white p-8 rounded shadow-lg relative z-10'
+      >
         <button className='absolute top-2 right-2 text-2xl' onClick={onClose}>
           ✖
         </button>
         <h2 className='text-2xl font-bold mb-4'>
-          {isRegistering ? 'Register' : 'Sign In'}
+          {isForgotPassword
+            ? 'Forgot Password'
+            : isRegistering
+            ? 'Register'
+            : 'Sign In'}
         </h2>
         <form
-          onSubmit={isRegistering ? handleRegister : handleSignIn}
+          onSubmit={
+            isForgotPassword
+              ? handleForgotPassword
+              : isRegistering
+              ? handleRegister
+              : handleSignIn
+          }
           encType='multipart/form-data'
+          autoComplete='off'
         >
           {isRegistering && (
             <>
@@ -141,6 +210,7 @@ const AuthModal = ({ isOpen, onClose, authMode }) => {
               <input
                 type='date'
                 name='dob'
+                placeholder='Date of Birth'
                 value={formData.dob}
                 onChange={handleInputChange}
                 className='w-full mb-4 p-2 border rounded'
@@ -165,7 +235,7 @@ const AuthModal = ({ isOpen, onClose, authMode }) => {
               </div>
             </>
           )}
-          {!isRegistering && (
+          {!isRegistering && !isForgotPassword && (
             <>
               <input
                 type='email'
@@ -185,6 +255,10 @@ const AuthModal = ({ isOpen, onClose, authMode }) => {
                 className='w-full mb-4 p-2 border rounded'
                 required
               />
+              <div className='flex items-center mb-4'>
+                <input type='checkbox' id='keepSignedIn' className='mr-2' />
+                <label htmlFor='keepSignedIn'>Keep me signed in</label>
+              </div>
               <div className='text-center mt-4'>
                 <p>
                   Don't have an account?{' '}
@@ -195,26 +269,65 @@ const AuthModal = ({ isOpen, onClose, authMode }) => {
                     Register
                   </span>
                 </p>
+                <p>
+                  <span
+                    className='text-blue-500 cursor-pointer'
+                    onClick={() => setIsForgotPassword(true)}
+                  >
+                    Forgot Password?
+                  </span>
+                </p>
               </div>
             </>
           )}
-          <button
-            type='submit'
-            className='bg-blue-500 text-white p-2 rounded w-full'
-          >
-            {isRegistering ? 'Register' : 'Sign In'}
-          </button>
-          {!isRegistering && (
-            <div className='text-center mt-4'>
-              <button
-                type='button'
-                onClick={() => signIn('google')}
-                className='bg-red-500 text-white p-2 rounded w-full mt-2'
-              >
-                Sign In with Google
-              </button>
-            </div>
+          {isForgotPassword && (
+            <>
+              <input
+                type='email'
+                name='email'
+                placeholder='Email'
+                value={formData.email}
+                onChange={handleInputChange}
+                className='w-full mb-4 p-2 border rounded'
+                required
+              />
+              <div className='text-center mt-4'>
+                <p>
+                  Remembered your password?{' '}
+                  <span
+                    className='text-blue-500 cursor-pointer'
+                    onClick={() => setIsForgotPassword(false)}
+                  >
+                    Back to Sign In
+                  </span>
+                </p>
+              </div>
+            </>
           )}
+          <div className='flex justify-between'>
+            <button
+              type='button'
+              onClick={handleCancel}
+              className='bg-red-500 text-white p-2 rounded w-full mr-2'
+            >
+              Cancel
+            </button>
+            <button
+              type='submit'
+              className={`bg-blue-500 text-white p-2 rounded w-full ${
+                isLoading ? 'opacity-50 cursor-not-allowed' : ''
+              }`}
+              disabled={isLoading}
+            >
+              {isLoading
+                ? 'Processing...'
+                : isRegistering
+                ? 'Register'
+                : isForgotPassword
+                ? 'Send Reset Link'
+                : 'Sign In'}
+            </button>
+          </div>
         </form>
       </div>
     </div>

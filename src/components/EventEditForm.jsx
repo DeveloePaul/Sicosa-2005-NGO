@@ -158,6 +158,13 @@ const EventEditForm = ({ onClose, eventId }) => {
           >
             Save Changes
           </button>
+          <button
+            type='button'
+            onClick={onClose}
+            className='ml-2 btn btn-secondary text-gray-700 py-2 px-4 rounded hover:text-gray-800 transition duration-300'
+          >
+            Cancel
+          </button>
         </div>
       </form>
     </div>

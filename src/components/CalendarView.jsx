@@ -1,3 +1,4 @@
+'use client';
 import { format, parseISO } from 'date-fns';
 import Image from 'next/image';
 import Link from 'next/link';

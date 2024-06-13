@@ -14,13 +14,13 @@ const EventHighlights = () => {
               <Link href='/events'>
                 <Image
                   src='/event.jpg'
-                  alt='Event 1'
+                  alt='Events'
                   width={800}
                   height={400}
                   className='w-full h-64 object-cover'
                 />
                 <div className='p-6'>
-                  <h3 className='text-3xl font-semibold mb-3'>Event 1</h3>
+                  <h3 className='text-3xl font-semibold mb-3'>Events</h3>
                   <p className='text-gray-700 mb-4'>
                     Details about Event 1 with more information and highlights.
                   </p>
@@ -32,8 +32,8 @@ const EventHighlights = () => {
             <div className='bg-white shadow-lg rounded-lg overflow-hidden transform transition duration-500 hover:scale-105'>
               <Link href='/programs'>
                 <Image
-                  src='/images/programs.jpg'
-                  alt='Event 2'
+                  src='/event.jpg'
+                  alt='Programs'
                   width={400}
                   height={200}
                   className='w-full h-32 object-cover'
@@ -47,8 +47,8 @@ const EventHighlights = () => {
             <div className='bg-white shadow-lg rounded-lg overflow-hidden transform transition duration-500 hover:scale-105'>
               <Link href='/blog'>
                 <Image
-                  src='/images/news.jpeg'
-                  alt='Event 3'
+                  src='/event.jpg'
+                  alt='Blog'
                   width={400}
                   height={400}
                   className='w-full h-32 object-cover'
