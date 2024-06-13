@@ -115,7 +115,9 @@ const fetchPosts = async () => {
     if (!apiDomain) {
       return [];
     }
-    const res = await fetch(`${apiDomain}/blog`, { cache: 'no-store' });
+    const res = await fetch(`${apiDomain}/blog?sort=-updatedAt`, {
+      cache: 'no-store',
+    });
     if (!res.ok) {
       throw new Error('Failed to fetch posts');
     }

@@ -1,8 +1,8 @@
 'use client';
-
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import { useRouter } from 'next/navigation';
+import { signIn } from 'next-auth/react';
 import styles from './JoinUsForm.module.css';
 
 const JoinUsForm = () => {
@@ -48,25 +48,20 @@ const JoinUsForm = () => {
       const data = await res.json();
 
       if (res.ok) {
-        toast.success('Registration successful.');
+        toast.success('Registration successful. Signing you in...');
 
         // Automatically sign in the user
-        const loginRes = await fetch('/api/auth/signin', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            email: formData.email,
-            password: formData.password,
-          }),
+        const loginResult = await signIn('credentials', {
+          redirect: false,
+          email: formData.email,
+          password: formData.password,
         });
 
-        if (loginRes.ok) {
+        if (loginResult.error) {
+          toast.error('Sign-in failed.');
+        } else {
           toast.success('Signed in successfully.');
           router.push('/');
-        } else {
-          toast.error('Sign-in failed.');
         }
       } else if (res.status === 409) {
         toast.error(data.message);
@@ -85,7 +80,6 @@ const JoinUsForm = () => {
     router.push('/');
   };
 
-  // Apply blur to the background when the component is mounted
   useEffect(() => {
     document.body.classList.add('blur-background');
     return () => {

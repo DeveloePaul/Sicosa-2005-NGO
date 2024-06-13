@@ -25,6 +25,10 @@
   backdrop-filter: blur(4px);
 }
 
+.page-content {
+  @apply pt-16; /* Adjust this value based on your navbar's height */
+}
+
 /* Define CSS variables */
 :root {
   --color-white: #ffffff;

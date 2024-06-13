@@ -3,12 +3,15 @@ import { authOptions } from '@/utils/authOptions';
 import connectDB from '@/config/db';
 import Post from '@/models/Blog';
 
-export const GET = async () => {
+export const GET = async (req) => {
   try {
     await connectDB();
-    const posts = await Post.find({})
-      .sort({ date: -1 })
-      .populate('author', 'name');
+
+    // Extract query parameter for sorting
+    const { searchParams } = new URL(req.url);
+    const sort = searchParams.get('sort') || '-updatedAt'; // Default to sorting by updatedAt in descending order
+
+    const posts = await Post.find({}).sort(sort).populate('author', 'name');
     return new Response(JSON.stringify(posts), { status: 200 });
   } catch (error) {
     console.error('Error fetching posts:', error);
@@ -21,7 +24,7 @@ export const GET = async () => {
 export const POST = async (request) => {
   try {
     await connectDB();
-    
+
     const session = await getServerSession({
       req: request,
       ...authOptions,

@@ -3,7 +3,6 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { signOut, useSession } from 'next-auth/react';
 import { usePathname, useRouter } from 'next/navigation';
-import AuthModal from '@/components/AuthModal';
 import Image from 'next/image';
 import toast, { Toaster } from 'react-hot-toast';
 import { FaBars, FaTimes, FaUserCircle, FaSearch } from 'react-icons/fa';
@@ -11,25 +10,14 @@ import { FaBars, FaTimes, FaUserCircle, FaSearch } from 'react-icons/fa';
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isMembersOpen, setIsMembersOpen] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [authMode, setAuthMode] = useState('signIn');
   const [searchQuery, setSearchQuery] = useState('');
-  const modalRef = useRef(null);
   const membersDropdownRef = useRef(null);
   const pathname = usePathname();
   const { data: session, status } = useSession();
   const router = useRouter();
   const [hasSignedIn, setHasSignedIn] = useState(false);
 
-  const toggleModal = (mode) => {
-    setAuthMode(mode);
-    setIsModalOpen(true);
-  };
-
   const handleOutsideClick = (event) => {
-    if (modalRef.current && !modalRef.current.contains(event.target)) {
-      setIsModalOpen(false);
-    }
     if (
       membersDropdownRef.current &&
       !membersDropdownRef.current.contains(event.target)
@@ -82,9 +70,13 @@ const Navbar = () => {
   };
 
   return (
-    <nav className='bg-white shadow-lg p-4'>
+    <nav className='fixed top-0 left-0 right-0 bg-white shadow-lg p-4 z-50'>
       <div className='max-w-6xl mx-auto flex justify-between items-center'>
-        <Link href='/' className='text-2xl font-bold text-blue-500'>
+        <Link
+          href='/'
+          className='text-2xl font-bold text-blue-600'
+          onClick={handleLinkClick}
+        >
           SICOSA-2005
         </Link>
         <div className='flex-1 mx-4 relative'>
@@ -105,49 +97,63 @@ const Navbar = () => {
         <div className='hidden md:flex space-x-4 items-center'>
           <Link
             href='/'
-            className={`hover:text-blue-500 ${
-              pathname === '/' ? 'text-blue-500' : ''
+            className={`hover:text-blue-600 ${
+              pathname === '/' ? 'text-blue-600 font-bold' : ''
             }`}
+            onClick={handleLinkClick}
           >
             Home
           </Link>
           <Link
             href='/about'
-            className={`hover:text-blue-500 ${
-              pathname === '/about' ? 'text-blue-500' : ''
+            className={`hover:text-blue-600 ${
+              pathname === '/about' ? 'text-blue-600 font-bold' : ''
             }`}
+            onClick={handleLinkClick}
           >
             About
           </Link>
           <Link
             href='/events'
-            className={`hover:text-blue-500 ${
-              pathname === '/events' ? 'text-blue-500' : ''
+            className={`hover:text-blue-600 ${
+              pathname === '/events' ? 'text-blue-600 font-bold' : ''
             }`}
+            onClick={handleLinkClick}
           >
             Events
           </Link>
           <Link
             href='/blog'
-            className={`hover:text-blue-500 ${
-              pathname === '/blog' ? 'text-blue-500' : ''
+            className={`hover:text-blue-600 ${
+              pathname === '/blog' ? 'text-blue-600 font-bold' : ''
             }`}
+            onClick={handleLinkClick}
           >
             Blog
           </Link>
           <Link
-            href='/contact'
-            className={`hover:text-blue-500 ${
-              pathname === '/contact' ? 'text-blue-500' : ''
+            href='/programs'
+            className={`hover:text-blue-600 ${
+              pathname === '/programs' ? 'text-blue-600 font-bold' : ''
             }`}
+            onClick={handleLinkClick}
+          >
+            Programs
+          </Link>
+          <Link
+            href='/contact'
+            className={`hover:text-blue-600 ${
+              pathname === '/contact' ? 'text-blue-600 font-bold' : ''
+            }`}
+            onClick={handleLinkClick}
           >
             Contact
           </Link>
           <div className='relative' ref={membersDropdownRef}>
             <button
               onClick={handleMembersLinkClick}
-              className={`hover:text-blue-500 ${
-                pathname.includes('/members') ? 'text-blue-500' : ''
+              className={`hover:text-blue-600 ${
+                pathname.includes('/members') ? 'text-blue-600 font-bold' : ''
               }`}
             >
               Members
@@ -197,15 +203,14 @@ const Navbar = () => {
                 </span>
               </>
             ) : (
-              <>
+              <Link href='/sign-in'>
                 <button
-                  onClick={() => toggleModal('signIn')}
                   className='bg-blue-500 text-white px-2 py-1 rounded-full'
+                  onClick={handleLinkClick}
                 >
                   Sign In
                 </button>
-                <FaUserCircle className='w-8 h-8 text-gray-500' />
-              </>
+              </Link>
             )}
           </div>
         </div>
@@ -224,6 +229,9 @@ const Navbar = () => {
           <Link href='/blog' className='block' onClick={handleLinkClick}>
             Blog
           </Link>
+          <Link href='/programs' className='block' onClick={handleLinkClick}>
+            Programs
+          </Link>
           <Link href='/contact' className='block' onClick={handleLinkClick}>
             Contact
           </Link>
@@ -232,7 +240,7 @@ const Navbar = () => {
               Members
             </button>
             {isMembersOpen && (
-              <div className='absolute left-0 mt-2 py-2 w-48 bg-white border rounded shadow-xl z-20'>
+              <div className='mt-2 py-2 w-full bg-white border rounded shadow-xl z-20'>
                 <Link
                   href='/members'
                   className='block px-4 py-2 text-gray-800 hover:bg-gray-200'
@@ -276,26 +284,15 @@ const Navbar = () => {
                 </span>
               </>
             ) : (
-              <>
+              <Link href='/sign-in'>
                 <button
-                  onClick={() => toggleModal('signIn')}
                   className='block bg-blue-500 text-white px-2 py-1 rounded-full'
+                  onClick={handleLinkClick}
                 >
                   Sign In
                 </button>
-                <FaUserCircle className='w-8 h-8 text-gray-500' />
-              </>
+              </Link>
             )}
-          </div>
-        </div>
-      )}
-      {isModalOpen && (
-        <div
-          className='fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50'
-          onClick={handleOutsideClick}
-        >
-          <div ref={modalRef}>
-            <AuthModal mode={authMode} onClose={() => setIsModalOpen(false)} />
           </div>
         </div>
       )}

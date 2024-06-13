@@ -6,7 +6,6 @@ import { format, parseISO } from 'date-fns';
 import { fetchEvent } from '@/utils/request';
 import Spinner from '@/components/Spinner';
 
-
 const SingleEventPage = () => {
   const { id } = useParams();
   const router = useRouter();
@@ -43,13 +42,16 @@ const SingleEventPage = () => {
   return (
     <div className='container mx-auto px-4 py-10'>
       <div className='bg-white shadow-lg rounded-lg overflow-hidden animate-fadeInUp'>
-        <Image
-          src={event.image || '/images/placeholder.jpg'}
-          alt={event.title}
-          width={800}
-          height={400}
-          className='w-full h-96 object-cover'
-        />
+        <div className='relative w-full h-96'>
+          <Image
+            src={event.image || '/images/placeholder.jpg'}
+            alt={event.title}
+            layout='fill'
+            style={{ objectFit: 'cover' }}
+            className='absolute inset-0 w-full h-full'
+            priority
+          />
+        </div>
         <div className='p-6'>
           <h1 className='text-4xl font-bold mb-4'>{event.title}</h1>
           <p className='text-gray-700 mb-6'>{event.description}</p>
@@ -62,7 +64,7 @@ const SingleEventPage = () => {
           </p>
           <button
             onClick={handleBackToEvents}
-            className='btn btn-primary bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition duration-300 '
+            className='btn btn-primary bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition duration-300'
           >
             Back to Events
           </button>

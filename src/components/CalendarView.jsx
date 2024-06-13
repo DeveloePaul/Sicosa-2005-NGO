@@ -8,6 +8,7 @@ import { useState, useEffect } from 'react';
 import Modal from '@/components/Modal';
 import EventEditForm from '@/components/EventEditForm';
 import { useRouter } from 'next/navigation';
+import Spinner from '@/components/Spinner';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -16,12 +17,15 @@ const CalendarView = () => {
   const [session, setSession] = useState(null);
   const [isEditEventModalOpen, setIsEditEventModalOpen] = useState(false);
   const [selectedEventId, setSelectedEventId] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
+    setIsLoading(true);
     const fetchAndSetEvents = async () => {
       const fetchedEvents = await fetchEvents();
       setEvents(fetchedEvents);
+      setIsLoading(false);
     };
 
     getSession().then((session) => {
@@ -74,67 +78,79 @@ const CalendarView = () => {
         <h2 className='text-4xl font-bold text-center mb-10 text-blue-600'>
           Upcoming Events
         </h2>
-        
-        <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6'>
-          {events.map((event) => (
-            <div
-              key={event._id}
-              className='relative bg-white shadow-lg rounded-lg overflow-hidden transform transition duration-500 hover:scale-105 cursor-pointer'
-              onClick={() => handleEventClick(event._id)}
-            >
-              {event.image && (
-                <div className='relative h-48'>
-                  <Image
-                    src={event.image}
-                    alt={event.title}
-                    layout='fill'
-                    objectFit='cover'
-                    className='absolute inset-0 w-full h-full'
-                  />
-                </div>
-              )}
-              <div className='relative p-6 bg-white bg-opacity-75'>
-                <h3 className='text-2xl font-semibold mb-3'>{event.title}</h3>
-                <p className='text-gray-700 mb-4'>{event.description}</p>
-                <p className='text-gray-700 mb-2'>
-                  <strong>Venue:</strong> {event.location}
-                </p>
-                <p className='text-gray-700 mb-4'>
-                  <strong>Date:</strong>{' '}
-                  {format(parseISO(event.date), 'MMMM dd, yyyy')}
-                </p>
-                <p className='text-gray-700 mb-4'>
-                  <strong>Author:</strong> {event.author?.name || 'Admin'}
-                </p>
-                <button className='btn btn-primary bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition duration-300'>
-                  RSVP
-                </button>
-                {session?.user?.isAdmin && (
-                  <div className='flex mt-4'>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        openEditEventModal(event._id);
-                      }}
-                      className='btn btn-secondary text-blue-600 py-2 px-4 rounded hover:text-blue-700 transition duration-300 mr-2'
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDeleteEvent(event._id);
-                      }}
-                      className='btn btn-danger text-red-600 py-2 px-4 rounded hover:text-red-700 transition duration-300'
-                    >
-                      Delete
-                    </button>
+        {isLoading ? (
+          <div className='flex justify-center'>
+            <Spinner />
+          </div>
+        ) : (
+          <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6'>
+            {events.length > 0 ? (
+              events.map((event) => (
+                <div
+                  key={event._id}
+                  className='relative bg-white shadow-lg rounded-lg overflow-hidden transform transition duration-500 hover:scale-105 cursor-pointer'
+                  onClick={() => handleEventClick(event._id)}
+                >
+                  {event.image && (
+                    <div className='relative h-64'>
+                      <Image
+                        src={event.image}
+                        alt={event.title}
+                        layout='fill'
+                        objectFit='cover'
+                        className='absolute inset-0 w-full h-full'
+                      />
+                    </div>
+                  )}
+                  <div className='relative p-6 bg-white bg-opacity-75'>
+                    <h3 className='text-2xl font-semibold mb-3'>
+                      {event.title}
+                    </h3>
+                    <p className='text-gray-700 mb-4'>
+                      {event.description.length > 50
+                        ? `${event.description.substring(0, 50)}...`
+                        : event.description}
+                    </p>
+                    <p className='text-gray-700 mb-2'>
+                      <strong>Venue:</strong> {event.location}
+                    </p>
+                    <p className='text-gray-700 mb-4'>
+                      <strong>Date:</strong>{' '}
+                      {format(parseISO(event.date), 'MMMM dd, yyyy')}
+                    </p>
+                    <p className='text-gray-700 mb-4'>
+                      <strong>Author:</strong> {event.author?.name || 'Admin'}
+                    </p>
+                    {session?.user?.isAdmin && (
+                      <div className='flex mt-4'>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openEditEventModal(event._id);
+                          }}
+                          className='btn btn-secondary text-blue-600 py-2 px-4 rounded hover:text-blue-700 transition duration-300 mr-2'
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteEvent(event._id);
+                          }}
+                          className='btn btn-danger text-red-600 py-2 px-4 rounded hover:text-red-700 transition duration-300'
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
+                </div>
+              ))
+            ) : (
+              <p className='text-center text-gray-600'>No Upcoming Events</p>
+            )}
+          </div>
+        )}
         {isEditEventModalOpen && (
           <Modal onClose={closeEditEventModal}>
             <EventEditForm

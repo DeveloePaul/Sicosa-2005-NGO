@@ -20,25 +20,22 @@ const Footer = () => {
                 <Link href="/" className="text-sm hover:underline">Home</Link>
               </li>
               <li>
-                <Link href="/about" className="text-sm hover:underline">About Us</Link>
+                <Link href="/about" className="text-sm hover:underline">About</Link>
               </li>
               <li>
                 <Link href="/events" className="text-sm hover:underline">Events</Link>
               </li>
               <li>
-                <Link href="/programs" className="text-sm hover:underline">Programs</Link>
-              </li>
-              <li>
-                <Link href="/members" className="text-sm hover:underline">Members</Link>
-              </li>
-              <li>
-                <Link href="/fundraising" className="text-sm hover:underline">Fundraising</Link>
-              </li>
-              <li>
                 <Link href="/blog" className="text-sm hover:underline">Blog</Link>
               </li>
               <li>
-                <Link href="/contact" className="text-sm hover:underline">Contact Us</Link>
+                <Link href="/programs" className="text-sm hover:underline">Programs</Link>
+              </li>
+              <li>
+                <Link href="/contact" className="text-sm hover:underline">Contact</Link>
+              </li>
+              <li>
+                <Link href="/members" className="text-sm hover:underline">Members</Link>
               </li>
             </ul>
           </div>

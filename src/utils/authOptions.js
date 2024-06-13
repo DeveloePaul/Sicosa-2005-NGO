@@ -1,3 +1,4 @@
+// authOptions.js
 import GoogleProvider from 'next-auth/providers/google';
 import connectDB from '@/config/db';
 import CredentialsProvider from 'next-auth/providers/credentials';
@@ -71,4 +72,5 @@ export const authOptions = {
     },
   },
   secret: process.env.NEXTAUTH_SECRET,
+  debug: process.env.NODE_ENV === 'development',
 };
