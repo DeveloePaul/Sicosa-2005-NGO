@@ -1,58 +1,38 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { format, parseISO } from 'date-fns';
 import Image from 'next/image';
-import { fetchUsers, updateUser, deleteUser } from '@/utils/request';
-import { getSession } from 'next-auth/react';
+import { updateUser, deleteUser } from '@/utils/request';
 import { useRouter } from 'next/navigation';
 import styles from './MembersDirectory.module.css';
 
-const MembersDirectory = () => {
-  const [users, setUsers] = useState([]);
+const MembersDirectoryClient = ({ users, session }) => {
+  const [filteredUsers, setFilteredUsers] = useState(users);
   const [search, setSearch] = useState('');
-  const [session, setSession] = useState(null);
   const router = useRouter();
-
-  useEffect(() => {
-    const fetchAndSetUsers = async () => {
-      const fetchedUsers = await fetchUsers();
-      const nonExcoUsers = fetchedUsers.filter((user) => !user.isExco);
-      const sortedUsers = nonExcoUsers.sort((a, b) =>
-        a.name.localeCompare(b.name),
-      );
-      setUsers(sortedUsers);
-    };
-
-    const fetchSessionAndUsers = async () => {
-      const session = await getSession();
-      setSession(session);
-      if (!session) {
-        router.push('/sign-in');
-      } else {
-        fetchAndSetUsers();
-      }
-    };
-
-    fetchSessionAndUsers();
-  }, []); // Only run once when the component mounts
 
   const handleUpdateUser = async (id, updates) => {
     await updateUser(id, updates);
-    const updatedUsers = users
+    const updatedUsers = filteredUsers
       .map((user) => (user._id === id ? { ...user, ...updates } : user))
       .filter((user) => !user.isExco); // Filter out users with isExco true
-    setUsers(updatedUsers.sort((a, b) => a.name.localeCompare(b.name)));
+    setFilteredUsers(updatedUsers.sort((a, b) => a.name.localeCompare(b.name)));
   };
 
   const handleDeleteUser = async (id) => {
     await deleteUser(id);
-    const updatedUsers = users.filter((user) => user._id !== id);
-    setUsers(updatedUsers);
+    const updatedUsers = filteredUsers.filter((user) => user._id !== id);
+    setFilteredUsers(updatedUsers);
   };
 
-  const filteredUsers = users.filter((user) =>
-    user.name.toLowerCase().includes(search.toLowerCase()),
-  );
+  const handleSearch = (e) => {
+    const value = e.target.value.toLowerCase();
+    setSearch(value);
+    const searchResults = users.filter((user) =>
+      user.name.toLowerCase().includes(value),
+    );
+    setFilteredUsers(searchResults);
+  };
 
   return (
     <section className={styles.container}>
@@ -62,7 +42,7 @@ const MembersDirectory = () => {
           type='text'
           placeholder='Search members'
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={handleSearch}
           className={`${styles.input} input input-bordered w-full max-w-md mx-auto mb-6`}
         />
         <div className={styles.grid}>
@@ -83,7 +63,7 @@ const MembersDirectory = () => {
                 <p className={styles.textGray}>
                   Birthday: {format(parseISO(user.dob), 'MMMM dd')}
                 </p>
-                {session && session.user.isAdmin && (
+                {session?.user?.isAdmin && (
                   <>
                     <button
                       onClick={() =>
@@ -145,4 +125,4 @@ const MembersDirectory = () => {
   );
 };
 
-export default MembersDirectory;
+export default MembersDirectoryClient;

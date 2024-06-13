@@ -13,8 +13,8 @@ const EventHighlights = () => {
                   <Image
                     src='/event.jpg'
                     alt='Events'
-                    layout='fill'
-                    objectFit='cover'
+                    fill={true}
+                    style={{ objectFit: 'cover' }}
                   />
                 </div>
                 <div className='p-6'>
@@ -33,8 +33,8 @@ const EventHighlights = () => {
                   <Image
                     src='/programs.png'
                     alt='Programs'
-                    layout='fill'
-                    objectFit='cover'
+                    fill={true}
+                    style={{ objectFit: 'cover' }}
                   />
                 </div>
                 <div className='p-6'>
@@ -49,8 +49,8 @@ const EventHighlights = () => {
                   <Image
                     src='/blog.png'
                     alt='Blog'
-                    layout='fill'
-                    objectFit='cover'
+                    fill={true}
+                    style={{ objectFit: 'cover' }}
                   />
                 </div>
                 <div className='p-6'>

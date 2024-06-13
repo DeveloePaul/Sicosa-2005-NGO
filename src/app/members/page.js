@@ -1,4 +1,4 @@
-import MembersDirectory from '@/components/MembersDirectory';
+import MembersServer from '@/components/MembersServer';
 
 export const metadata = {
   title: 'Members',
@@ -9,7 +9,7 @@ export const metadata = {
 const MembersPage = () => {
   return (
     <div>
-      <MembersDirectory />
+      <MembersServer />
     </div>
   );
 };
