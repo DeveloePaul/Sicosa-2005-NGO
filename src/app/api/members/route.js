@@ -23,3 +23,9 @@ export const GET = async (request) => {
     });
   }
 };
+
+// Marking the route as dynamic
+export const config = {
+  runtime: 'experimental-edge', // or 'nodejs'
+  unstable_allowDynamic: ['headers', 'cookies'], // This allows the dynamic server behavior
+};
